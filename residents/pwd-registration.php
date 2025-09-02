@@ -380,8 +380,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <span class="text-xs font-medium text-gray-700">AB-</span>
                             </label>
                         </div>
-                        </div>
-
+                    </div>
+                    
                     <!-- Civil Status -->
                     <div class="mt-4">
                         <label class="block text-xs font-medium text-gray-700 mb-2">*CIVIL STATUS:</label>
@@ -406,13 +406,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <input type="radio" name="civil_status" value="widower" class="mr-2">
                                 <span class="text-xs font-medium text-gray-700">Widower</span>
                             </label>
-                        </div>
                     </div>
-                    
+                </div>
+
                                          <!-- Disability Type -->
                      <div class="mt-4">
                          <label class="block text-xs font-medium text-gray-700 mb-2">*TYPE OF DISABILITY:</label>
-                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                              <label class="flex items-center">
                                  <input type="radio" name="disability_type" value="deaf_hard_hearing" class="mr-2" required>
                                  <span class="text-xs font-medium text-gray-700">Deaf or Hard of Hearing</span>
@@ -453,13 +453,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                  <input type="radio" name="disability_type" value="rare_disease" class="mr-2">
                                  <span class="text-xs font-medium text-gray-700">Rare Disease (RA 10747)</span>
                              </label>
-                         </div>
+                        </div>
                         </div>
 
                      <!-- Cause of Disability -->
                      <div class="mt-4">
                          <label for="disability_cause" class="block text-xs font-medium text-gray-700 mb-2">*CAUSE OF DISABILITY:</label>
-                         <select id="disability_cause" name="disability_cause" required
+                            <select id="disability_cause" name="disability_cause" required
                              class="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-xs"
                              onchange="console.log('Dropdown changed to:', this.value); if(this.value === 'congenital') { document.getElementById('congenital_options').style.display = 'block'; document.getElementById('acquired_options').style.display = 'none'; } else if(this.value === 'acquired') { document.getElementById('acquired_options').style.display = 'block'; document.getElementById('congenital_options').style.display = 'none'; } else { document.getElementById('congenital_options').style.display = 'none'; document.getElementById('acquired_options').style.display = 'none'; }">
                              <option value="">-- Select Cause --</option>
@@ -491,9 +491,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                      <input type="text" name="other_congenital_specify" placeholder="Please specify" 
                                          class="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-xs">
                         </div>
+                        </div>
                     </div>
-                </div>
-
+                    
                          <!-- Acquired Options -->
                          <div id="acquired_options" class="mt-3 hidden">
                              <label class="block text-xs font-medium text-gray-700 mb-2">Select Specific Cause:</label>
@@ -519,9 +519,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                          class="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-xs">
                                  </div>
                         </div>
-                        </div>
                     </div>
-                    
+                </div>
+
                                          
                 </div>
 
@@ -576,9 +576,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($resident['email'] ?? ''); ?>" readonly
                                 class="w-full px-2 py-1 border border-gray-300 rounded-md bg-gray-100 text-xs">
                         </div>
+                        </div>
                     </div>
-                </div>
-
+                    
                 <!-- Educational Attainment -->
                 <div class="border-2 border-gray-300 rounded-lg p-4 bg-gray-50">
                     <h2 class="text-sm font-bold text-gray-800 mb-3" style="font-size: 18px !important;">*EDUCATIONAL ATTAINMENT:</h2>
@@ -615,9 +615,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <input type="radio" name="educational_attainment" value="post_graduate" class="mr-2">
                             <span class="text-xs font-medium text-gray-700">Post Graduate</span>
                         </label>
-                        </div>
                     </div>
-                    
+                </div>
+
                 <!-- Status of Employment -->
                 <div class="border-2 border-gray-300 rounded-lg p-4 bg-gray-50">
                     <h2 class="text-sm font-bold text-gray-800 mb-3" style="font-size: 18px !important;">*STATUS OF EMPLOYMENT:</h2>
@@ -649,7 +649,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <input type="radio" name="employment_category" value="private" class="mr-2">
                             <span class="text-xs font-medium text-gray-700">Private</span>
                         </label>
-                    </div>
+                        </div>
                 </div>
 
                 <!-- Types of Employment -->
@@ -672,9 +672,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <input type="radio" name="employment_type" value="emergency" class="mr-2">
                             <span class="text-xs font-medium text-gray-700">Emergency</span>
                         </label>
-                    </div>
                         </div>
-
+                    </div>
+                    
                 <!-- Occupation -->
                 <div class="border-2 border-gray-300 rounded-lg p-4 bg-gray-50">
                     <h2 class="text-sm font-bold text-gray-800 mb-3" style="font-size: 18px !important;">*OCCUPATION:</h2>
@@ -832,11 +832,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <button type="button" id="back-btn" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors duration-200" onclick="handleBackToForm()">
                             Back to Form
                         </button>
-                        <button type="submit" class="bg-primary hover:bg-secondary text-white px-6 py-2 rounded-md font-medium transition-colors duration-200">
-                            Submit Application
-                        </button>
-                    </div>
-                </form>
+                    <button type="submit" class="bg-primary hover:bg-secondary text-white px-6 py-2 rounded-md font-medium transition-colors duration-200">
+                        Submit Application
+                    </button>
+                </div>
+            </form>
             </div>
         </div>
 
@@ -1577,7 +1577,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   });
               } else {
                   console.error('Back button not found!');
-              }
+            }
         });
     </script>
 </body>
