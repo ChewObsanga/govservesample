@@ -22,12 +22,23 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy existing application directory
+# Copy config directory first
+COPY config/ ./config/
+
+# Copy other essential files
+COPY login.php ./
+COPY register.php ./
+COPY index.php ./
+COPY test.php ./
+COPY .htaccess ./
+
+# Copy remaining files
 COPY . .
 
 # Debug: List files to verify they were copied
-RUN ls -la /var/www/html/
-RUN ls -la /var/www/html/config/
+RUN echo "=== Root directory contents ===" && ls -la /var/www/html/
+RUN echo "=== Config directory contents ===" && ls -la /var/www/html/config/
+RUN echo "=== Testing file existence ===" && test -f /var/www/html/config/database.php && echo "config/database.php exists" || echo "config/database.php missing"
 
 # Install dependencies (if composer.json exists)
 RUN if [ -f "composer.json" ]; then composer install --no-dev --optimize-autoloader; fi
