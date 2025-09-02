@@ -45,3 +45,25 @@ sessions/
 # Cache files
 cache/
 *.cache
+
+# Vendor dependencies (should be installed via composer)
+vendor/
+
+# Composer files
+composer.phar
+
+# Large files and images
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.pdf
+*.zip
+*.rar
+
+# Test files
+test_sessions.php
+
+# ML files (can be large)
+src/ML/
+database/ml_schema.sql
