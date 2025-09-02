@@ -3,7 +3,7 @@ RewriteEngine On
 # Handle requests to the root directory
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^$ login.php [L]
+RewriteRule ^$ index.php [L]
 
 # Handle requests to other PHP files
 RewriteCond %{REQUEST_FILENAME} !-f
@@ -11,4 +11,4 @@ RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ $1 [L]
 
 # Set default index file
-DirectoryIndex login.php
+DirectoryIndex index.php

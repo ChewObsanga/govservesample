@@ -25,6 +25,10 @@ WORKDIR /var/www/html
 # Copy existing application directory
 COPY . .
 
+# Debug: List files to verify they were copied
+RUN ls -la /var/www/html/
+RUN ls -la /var/www/html/config/
+
 # Install dependencies (if composer.json exists)
 RUN if [ -f "composer.json" ]; then composer install --no-dev --optimize-autoloader; fi
 
