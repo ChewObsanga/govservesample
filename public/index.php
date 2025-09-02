@@ -1,8 +1,8 @@
 <?php
-// Check if the residents directory exists
-if (file_exists('../residents/index.php')) {
-    // Redirect to the main application
-    header('Location: ../residents/index.php');
+// Check if the login.php exists in the parent directory
+if (file_exists('../login.php')) {
+    // Redirect to the login page
+    header('Location: ../login.php');
     exit();
 } else {
     // Fallback - show a simple message
