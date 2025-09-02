@@ -25,15 +25,26 @@ WORKDIR /var/www/html
 # Copy existing application directory
 COPY . .
 
-# Install dependencies
-RUN composer install --no-dev --optimize-autoloader
+# Install dependencies (if composer.json exists)
+RUN if [ -f "composer.json" ]; then composer install --no-dev --optimize-autoloader; fi
 
 # Change ownership of our applications
 RUN chown -R www-data:www-data /var/www/html
 
 # Configure Apache
 RUN a2enmod rewrite
-COPY apache.conf /etc/apache2/sites-available/000-default.conf
+
+# Create a simple Apache configuration
+RUN echo '<VirtualHost *:80>\n\
+    ServerAdmin webmaster@localhost\n\
+    DocumentRoot /var/www/html\n\
+    <Directory /var/www/html>\n\
+        AllowOverride All\n\
+        Require all granted\n\
+    </Directory>\n\
+    ErrorLog ${APACHE_LOG_DIR}/error.log\n\
+    CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
+</VirtualHost>' > /etc/apache2/sites-available/000-default.conf
 
 # Expose port 80
 EXPOSE 80
