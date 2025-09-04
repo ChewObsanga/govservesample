@@ -1,4 +1,6 @@
 <?php
+// Set timezone to Philippines
+date_default_timezone_set('Asia/Manila');
 session_start();
 require_once '../config/database.php';
 
@@ -280,6 +282,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <label for="date_applied" class="block text-xs font-medium text-gray-700 mb-2">DATE APPLIED:</label>
                         <input type="date" id="date_applied" name="date_applied" value="<?php echo date('Y-m-d'); ?>" readonly
                             class="w-full px-2 py-1 border border-gray-300 rounded-md bg-gray-100 text-xs">
+                        <p class="text-xs text-gray-500 mt-1">Current date: <?php echo date('m/d/Y'); ?></p>
                     </div>
                 </div>
 
@@ -536,8 +539,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                         <div>
                             <label for="barangay" class="block text-xs font-medium text-gray-700 mb-2">*BARANGAY:</label>
-                            <input type="text" id="barangay" name="barangay" required
+                            <select id="barangay" name="barangay" required
                                 class="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-xs">
+                                <option value="">Select Barangay</option>
+                                <?php
+                                // Generate barangays 1-175
+                                for ($i = 1; $i <= 175; $i++) {
+                                    echo "<option value=\"Barangay $i\">Barangay $i</option>";
+                                }
+                                // Add special barangays 176A, 176B, 176C, 176D, 176E
+                                $specialBarangays = ['176A', '176B', '176C', '176D', '176E'];
+                                foreach ($specialBarangays as $brgy) {
+                                    echo "<option value=\"Barangay $brgy\">Barangay $brgy</option>";
+                                }
+                                // Generate barangays 177-188
+                                for ($i = 177; $i <= 188; $i++) {
+                                    echo "<option value=\"Barangay $i\">Barangay $i</option>";
+                                }
+                                ?>
+                            </select>
                         </div>
                         <div>
                             <label for="municipality" class="block text-xs font-medium text-gray-700 mb-2">MUNICIPALITY:</label>
@@ -775,68 +795,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <h3 class="text-lg font-bold text-gray-800 mb-3">Application Type: <span id="selected-application-type" class="text-green-600"></span></h3>
                 </div>
                 
-                <!-- Requirements Display -->
-                <div class="border-2 border-gray-300 rounded-lg p-4 bg-gray-50 mb-6">
-                    <h3 class="text-lg font-bold text-gray-800 mb-3">Required Documents:</h3>
-                    <div id="requirements-list" class="space-y-3">
-                        <!-- Requirements will be populated by JavaScript -->
-                    </div>
-                </div>
-                
                 <!-- Document Upload Form -->
                 <form method="POST" enctype="multipart/form-data" class="space-y-4">
                     <input type="hidden" name="form_data" id="form-data-input">
                     
-                    <!-- Common Documents -->
-                    <div class="border-2 border-gray-300 rounded-lg p-4 bg-gray-50">
-                        <h3 class="text-lg font-bold text-gray-800 mb-3">Common Documents (All Application Types)</h3>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">1. 2x2 Picture (2pc)</label>
-                                <input type="file" name="picture_2x2[]" multiple accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-                                <p class="text-xs text-gray-500 mt-1">Upload 2 pieces of 2x2 photos</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">2. 1x1 Picture (1pc)</label>
-                                <input type="file" name="picture_1x1" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-                                <p class="text-xs text-gray-500 mt-1">Upload 1 piece of 1x1 photo</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">3. Barangay Certificate Proof of Residency</label>
-                                <input type="file" name="barangay_certificate" accept=".pdf,.jpg,.jpeg,.png" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-                                <p class="text-xs text-gray-500 mt-1">Original copy with Barangay Contact No.</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">4. Certificate of Disability</label>
-                                <input type="file" name="disability_certificate[]" multiple accept=".pdf,.jpg,.jpeg,.png" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-                                <p class="text-xs text-gray-500 mt-1">Two copies (1 Original & 1 Xerox)</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">5. Valid ID / Birth Certificate</label>
-                                <input type="file" name="valid_id" accept=".pdf,.jpg,.jpeg,.png" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-                                <p class="text-xs text-gray-500 mt-1">Xerox copy of any valid ID or birth certificate</p>
-                            </div>
+                    <!-- Dynamic Documents Based on Application Type -->
+                    <div id="dynamic-documents" class="border-2 border-gray-300 rounded-lg p-4 bg-gray-50">
+                        <div id="documents-list" class="space-y-4">
+                            <!-- Documents will be populated by JavaScript based on application type -->
                         </div>
                     </div>
                     
-                    <!-- Conditional Documents -->
-                    <div id="conditional-documents" class="border-2 border-gray-300 rounded-lg p-4 bg-gray-50">
-                        <h3 class="text-lg font-bold text-gray-800 mb-3">Additional Documents</h3>
-                        <div id="additional-docs-list" class="space-y-4">
-                            <!-- Additional documents will be populated by JavaScript -->
+                    <!-- Terms and Conditions -->
+                    <div class="border-2 border-gray-300 rounded-lg p-4 bg-gray-50 mt-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-3">Terms and Conditions</h3>
+                        <div class="max-h-40 overflow-y-auto text-xs text-gray-700 leading-relaxed mb-4">
+                            <p class="mb-2"><strong>1. Application Accuracy:</strong> I certify that all information provided in this application is true, accurate, and complete to the best of my knowledge.</p>
+                            
+                            <p class="mb-2"><strong>2. Document Authenticity:</strong> I confirm that all documents submitted are genuine and authentic. I understand that providing false or fraudulent documents may result in the rejection of my application and potential legal consequences.</p>
+                            
+                            <p class="mb-2"><strong>3. Privacy and Data Protection:</strong> I consent to the collection, processing, and storage of my personal information for the purpose of PWD registration and related government services. I understand that my data will be handled in accordance with the Data Privacy Act of 2012.</p>
+                            
+                            <p class="mb-2"><strong>4. Medical Assessment:</strong> I acknowledge that my application may require medical assessment and evaluation by qualified healthcare professionals to determine eligibility for PWD benefits.</p>
+                            
+                            <p class="mb-2"><strong>5. Benefits and Privileges:</strong> I understand that PWD registration entitles me to certain benefits and privileges as provided by Republic Act No. 7277 (Magna Carta for Disabled Persons) and other relevant laws.</p>
+                            
+                            <p class="mb-2"><strong>6. Application Processing:</strong> I acknowledge that the processing of my application may take time and that I will be notified of the status through the contact information provided.</p>
+                            
+                            <p class="mb-2"><strong>7. Updates and Renewal:</strong> I agree to inform the authorities of any changes in my personal information or medical condition that may affect my PWD status.</p>
+                            
+                            <p class="mb-2"><strong>8. Compliance:</strong> I agree to comply with all applicable laws, rules, and regulations governing PWD registration and benefits.</p>
+                            
+                            <p class="mb-2"><strong>9. Liability:</strong> I understand that the government and its agencies are not liable for any misuse of PWD benefits or privileges.</p>
+                            
+                            <p class="mb-2"><strong>10. Agreement:</strong> By checking the box below, I acknowledge that I have read, understood, and agree to all the terms and conditions stated above.</p>
+                        </div>
+                        
+                        <div class="flex items-start space-x-3">
+                            <input type="checkbox" id="terms_conditions" name="terms_conditions" required class="mt-1">
+                            <label for="terms_conditions" class="text-sm text-gray-700">
+                                I have read, understood, and agree to the <strong>Terms and Conditions</strong> and <strong>Privacy Policy</strong> stated above.
+                            </label>
                         </div>
                     </div>
                     
                     <!-- Form Actions -->
-                    <div class="flex justify-between space-x-3">
+                    <div class="flex justify-between space-x-3 mt-6">
                         <button type="button" id="back-btn" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors duration-200" onclick="handleBackToForm()">
                             Back to Form
                         </button>
-                    <button type="submit" class="bg-primary hover:bg-secondary text-white px-6 py-2 rounded-md font-medium transition-colors duration-200">
-                        Submit Application
-                    </button>
-                </div>
-            </form>
+                        <button type="submit" id="submit-btn" class="bg-primary hover:bg-secondary text-white px-6 py-2 rounded-md font-medium transition-colors duration-200" disabled>
+                            Submit Application
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
 
@@ -932,73 +944,73 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </p>
                         </div>
                         
-                        <div class="space-y-4 text-sm">
+                        <div class="space-y-4 text-xs">
                             <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                                <h4 class="font-semibold text-gray-800 mb-3">1. Deaf or Hard of Hearing</h4>
-                                <p class="text-gray-700 leading-relaxed">
+                                <h4 class="font-semibold text-gray-800 mb-3 text-sm">1. Deaf or Hard of Hearing</h4>
+                                <p class="text-gray-700 leading-relaxed text-xs">
                                     Refers to people with hearing loss, implies little or no hearing/ranging from mild to severe. Hearing loss, also known as hearing impairment means the complete or partial loss of the ability to hear from one or both ears with 26 dB or greater hearing threshold, averaged at frequencies' 0.5, 1, 2, 4 kilohertz.
                                 </p>
                             </div>
                             
                             <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                                <h4 class="font-semibold text-gray-800 mb-3">2. Intellectual Disability</h4>
-                                <p class="text-gray-700 leading-relaxed">
+                                <h4 class="font-semibold text-gray-800 mb-3 text-sm">2. Intellectual Disability</h4>
+                                <p class="text-gray-700 leading-relaxed text-xs">
                                     A significantly reduced ability to understand new or complex information and to learn and apply new skills.
                                 </p>
                             </div>
                             
                             <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                                <h4 class="font-semibold text-gray-800 mb-3">3. Learning Disability</h4>
-                                <p class="text-gray-700 leading-relaxed">
+                                <h4 class="font-semibold text-gray-800 mb-3 text-sm">3. Learning Disability</h4>
+                                <p class="text-gray-700 leading-relaxed text-xs">
                                     Persons who, although normal in sensory, emotional and intellectual abilities, exhibit disorders in perception, listening, thinking, reading, writing, spelling, and arithmetic.
                                 </p>
                             </div>
                             
                             <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                                <h4 class="font-semibold text-gray-800 mb-3">4. Mental Disability</h4>
-                                <p class="text-gray-700 leading-relaxed">
+                                <h4 class="font-semibold text-gray-800 mb-3 text-sm">4. Mental Disability</h4>
+                                <p class="text-gray-700 leading-relaxed text-xs">
                                     Disability resulting from organic brain syndrome and or mental illness (psychotic or non-psychotic disorder).
                                 </p>
                             </div>
                             
                             <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                                <h4 class="font-semibold text-gray-800 mb-3">5. Physical Disability</h4>
-                                <p class="text-gray-700 leading-relaxed">
+                                <h4 class="font-semibold text-gray-800 mb-3 text-sm">5. Physical Disability</h4>
+                                <p class="text-gray-700 leading-relaxed text-xs">
                                     Is a restriction of ability due to any physical impairment that affects a person's mobility, function, endurance or stamina to sustain prolonged physical ability, dexterity to perform tasks skillfully and quality of life. Causes may be hereditary or acquired from trauma, infection, surgical or medical condition and include the following disorders, namely: (1) Musculoskeletal or orthopedic disorders (2) Neurological disorders (3) Cardiopulmonary disorders (4) Pediatric and congenital disorders.
                                 </p>
                             </div>
                             
                             <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                                <h4 class="font-semibold text-gray-800 mb-3">6. Psychosocial Disability</h4>
-                                <p class="text-gray-700 leading-relaxed">
+                                <h4 class="font-semibold text-gray-800 mb-3 text-sm">6. Psychosocial Disability</h4>
+                                <p class="text-gray-700 leading-relaxed text-xs">
                                     Any acquired behavioral, cognitive, emotional or social impairment that limits one or more activities necessary to effective interpersonal transactions and other civilizing process or activities to daily living such as but not limited to deviancy or anti-social behavior.
                                 </p>
                             </div>
                             
                             <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                                <h4 class="font-semibold text-gray-800 mb-3">7. Speech and Language Impairment</h4>
-                                <p class="text-gray-700 leading-relaxed">
+                                <h4 class="font-semibold text-gray-800 mb-3 text-sm">7. Speech and Language Impairment</h4>
+                                <p class="text-gray-700 leading-relaxed text-xs">
                                     One or more speech/language disorders of voice, articulation, rhythm and/or the receptive and expressive processes of language.
                                 </p>
                             </div>
                             
                             <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                                <h4 class="font-semibold text-gray-800 mb-3">8. Visual Disability</h4>
-                                <p class="text-gray-700 leading-relaxed">
+                                <h4 class="font-semibold text-gray-800 mb-3 text-sm">8. Visual Disability</h4>
+                                <p class="text-gray-700 leading-relaxed text-xs">
                                     A person with visual disability (Impairment) is one who has impairment of visual functioning even after treatment and/or standard refractive correction, and has visual acuity in the better eye of less than (6/18 for low vision and 3/60 for blind), or a visual field of less than10 degrees from the point of fixation. A certain level of visual impairment is defined as legal blindness. One is legally blind when your best corrected central visual acuity in your better eye is 6/60 on worse or your side vision is 20 degrees or less in the better eye.
                                 </p>
                             </div>
                             
                             <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                                <h4 class="font-semibold text-gray-800 mb-3">9. Cancer (RA 11215)</h4>
-                                <p class="text-gray-700 leading-relaxed">
+                                <h4 class="font-semibold text-gray-800 mb-3 text-sm">9. Cancer (RA 11215)</h4>
+                                <p class="text-gray-700 leading-relaxed text-xs">
                                     Cancer refers to a genetic term for a large group of diseases that can affect any part of the body. Other terms used are malignant tumors and neoplasms. One defining feature of cancer is the rapid creation of abnormal cells that grow beyond their usual boundaries, and which can then invade adjoining parts of the body and spread to other organs.
                                 </p>
                             </div>
                             
                             <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                                <h4 class="font-semibold text-gray-800 mb-3">10. Rare Disease (RA 10747)</h4>
-                                <p class="text-gray-700 leading-relaxed">
+                                <h4 class="font-semibold text-gray-800 mb-3 text-sm">10. Rare Disease (RA 10747)</h4>
+                                <p class="text-gray-700 leading-relaxed text-xs">
                                     Refers to disorders such as inherited metabolic disorders and other diseases with similar rare occurrence as recognized by the DOH upon recommendation of the NIH but excluding catastrophic (i.e., life threatening, seriously debilitating, or serious and chronic) forms of more frequently occurring diseases.
                                 </p>
                             </div>
@@ -1113,12 +1125,109 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 
+    <!-- Custom Modal -->
+    <div id="customModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl max-w-sm w-full mx-4">
+            <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                <div class="flex-1"></div>
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span class="text-lg font-semibold text-red-400">Notice</span>
+                </div>
+                <div class="flex-1 flex justify-end">
+                    <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="p-4">
+                <p id="modalMessage" class="text-gray-700 mb-4 text-center"></p>
+                <div class="flex justify-center">
+                    <button onclick="closeModal()" class="bg-red-400 hover:bg-red-500 text-white px-6 py-2 rounded-md font-medium transition-colors duration-200">
+                        OK
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Simple Next Page function that will definitely work
-        function handleNextPage() {
-            console.log('handleNextPage function called!');
-            alert('Next Page button is working!');
+        // Modal functions
+        function showModal(message) {
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('customModal').classList.remove('hidden');
+        }
+        
+        function closeModal() {
+            document.getElementById('customModal').classList.add('hidden');
+        }
+        
+        // Close modal when clicking outside
+        document.getElementById('customModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !document.getElementById('customModal').classList.contains('hidden')) {
+                closeModal();
+            }
+        });
+        
+        // Age calculation function
+        function calculateAge() {
+            const birthDateInput = document.getElementById('birth_date');
+            const ageInput = document.getElementById('age');
             
+            if (birthDateInput.value) {
+                const birthDate = new Date(birthDateInput.value);
+                const today = new Date();
+                
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const monthDiff = today.getMonth() - birthDate.getMonth();
+                
+                // Adjust age if birthday hasn't occurred this year
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                    age--;
+                }
+                
+                ageInput.value = age;
+            }
+        }
+        
+        // Add event listener for birth date change
+        document.addEventListener('DOMContentLoaded', function() {
+            const birthDateInput = document.getElementById('birth_date');
+            if (birthDateInput) {
+                birthDateInput.addEventListener('change', calculateAge);
+            }
+            
+            // Terms and conditions checkbox functionality
+            const termsCheckbox = document.getElementById('terms_conditions');
+            const submitBtn = document.getElementById('submit-btn');
+            
+            if (termsCheckbox && submitBtn) {
+                termsCheckbox.addEventListener('change', function() {
+                    submitBtn.disabled = !this.checked;
+                    if (this.checked) {
+                        submitBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+                        submitBtn.classList.add('bg-primary', 'hover:bg-secondary');
+                    } else {
+                        submitBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
+                        submitBtn.classList.remove('bg-primary', 'hover:bg-secondary');
+                    }
+                });
+            }
+        });
+        
+        // Enhanced Next Page function with proper validation
+        function handleNextPage() {
             // Get the form and document upload page
             const formPage = document.querySelector('#pwd-form').parentElement;
             const documentUploadPage = document.getElementById('document-upload-page');
@@ -1131,35 +1240,305 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Check if application type is selected
             const applicationTypeRadio = document.querySelector('input[name="application_type"]:checked');
             if (!applicationTypeRadio) {
-                alert('Please select an application type first!');
+                showModal('Please complete the form.');
                 return;
             }
             
-            // Simple validation - just check a few key fields
-            const requiredFields = ['last_name', 'first_name', 'birth_date', 'mobile'];
+            // Enhanced validation for all required fields
+            const requiredFields = [
+                'last_name', 'first_name', 'middle_name', 'birth_date', 'age', 
+                'mobile', 'emergency_contact_name', 'emergency_contact_number'
+            ];
+            
+            // Clear previous error styling
+            formPage.querySelectorAll('.border-red-500').forEach(field => {
+                field.classList.remove('border-red-500');
+            });
+            
             let missingFields = [];
+            let firstEmptyField = null;
             
             requiredFields.forEach(fieldName => {
                 const field = document.getElementById(fieldName);
-                if (field && !field.value.trim()) {
-                    missingFields.push(fieldName);
-                    field.style.borderColor = 'red';
+                if (field) {
+                    let fieldValue = '';
+                    
+                    if (field.type === 'radio') {
+                        // For radio buttons, check if any in the group is selected
+                        const radioGroup = formPage.querySelectorAll(`input[name="${field.name}"]`);
+                        const isSelected = Array.from(radioGroup).some(radio => radio.checked);
+                        fieldValue = isSelected ? 'selected' : '';
+                    } else {
+                        fieldValue = field.value.trim();
+                    }
+                    
+                    if (!fieldValue) {
+                        missingFields.push(fieldName);
+                        field.classList.add('border-red-500');
+                        
+                        if (!firstEmptyField) {
+                            firstEmptyField = field;
+                        }
+                    }
+                }
+            });
+            
+            // Check radio button groups
+            const radioGroups = ['sex', 'blood_type', 'civil_status', 'disability_type', 'educational_attainment', 'employment_status', 'employment_category', 'employment_type', 'occupation'];
+            radioGroups.forEach(groupName => {
+                const radioGroup = formPage.querySelectorAll(`input[name="${groupName}"]`);
+                const isSelected = Array.from(radioGroup).some(radio => radio.checked);
+                
+                if (!isSelected) {
+                    missingFields.push(groupName);
+                    radioGroup.forEach(radio => {
+                        radio.closest('label').classList.add('border-red-500');
+                    });
+                    
+                    if (!firstEmptyField) {
+                        firstEmptyField = radioGroup[0];
+                    }
                 }
             });
             
             if (missingFields.length > 0) {
-                alert('Please fill in these required fields: ' + missingFields.join(', '));
+                // Scroll to the first empty field
+                if (firstEmptyField) {
+                    const headerHeight = 80;
+                    const fieldPosition = firstEmptyField.getBoundingClientRect().top + window.pageYOffset - headerHeight;
+                    
+                    window.scrollTo({
+                        top: fieldPosition,
+                        behavior: 'smooth'
+                    });
+                    
+                    setTimeout(() => {
+                        firstEmptyField.focus();
+                        firstEmptyField.classList.add('ring-2', 'ring-red-500', 'ring-opacity-50');
+                        
+                        setTimeout(() => {
+                            firstEmptyField.classList.remove('ring-2', 'ring-red-500', 'ring-opacity-50');
+                        }, 3000);
+                    }, 500);
+                }
+                
+                showModal('Please complete the form. All fields marked with * are required.');
                 return;
             }
             
             // If validation passes, show the document upload page
-            formPage.style.display = 'none';
-            documentUploadPage.style.display = 'block';
+            document.getElementById('pwd-form').style.display = 'none';
+            document.getElementById('document-upload-page').classList.remove('hidden');
             
             // Update the application type display
             const selectedApplicationType = document.getElementById('selected-application-type');
             if (selectedApplicationType) {
                 selectedApplicationType.textContent = applicationTypeRadio.nextElementSibling.textContent;
+            }
+            
+            // Populate documents based on application type
+            const applicationType = applicationTypeRadio.value;
+            const documentsList = document.getElementById('documents-list');
+            
+            const documentsData = {
+                new: [
+                    {
+                        label: "1. 2x2 Picture (2pc)",
+                        name: "picture_2x2[]",
+                        accept: "image/*",
+                        multiple: true,
+                        description: "Upload 2 pieces of 2x2 photos"
+                    },
+                    {
+                        label: "2. 1x1 Picture (1pc)",
+                        name: "picture_1x1",
+                        accept: "image/*",
+                        multiple: false,
+                        description: "Upload 1 piece of 1x1 photo"
+                    },
+                    {
+                        label: "3. Barangay Certificate Proof of Residency",
+                        name: "barangay_certificate",
+                        accept: ".pdf,.jpg,.jpeg,.png",
+                        multiple: false,
+                        description: "Original copy with Barangay Contact No."
+                    },
+                    {
+                        label: "4. Certificate of Disability",
+                        name: "disability_certificate[]",
+                        accept: ".pdf,.jpg,.jpeg,.png",
+                        multiple: true,
+                        description: "Two copies (1 Original & 1 Xerox)"
+                    },
+                    {
+                        label: "5. Valid ID / Birth Certificate",
+                        name: "valid_id",
+                        accept: ".pdf,.jpg,.jpeg,.png",
+                        multiple: false,
+                        description: "Xerox copy of any valid ID or birth certificate"
+                    }
+                ],
+                renewal: [
+                    {
+                        label: "1. 2X2 Picture (2pc)",
+                        name: "picture_2x2[]",
+                        accept: "image/*",
+                        multiple: true,
+                        description: "Upload 2 pieces of 2x2 photos"
+                    },
+                    {
+                        label: "2. 1X1 Picture (1pc)",
+                        name: "picture_1x1",
+                        accept: "image/*",
+                        multiple: false,
+                        description: "Upload 1 piece of 1x1 photo"
+                    },
+                    {
+                        label: "3. Barangay Certificate Proof of Residency",
+                        name: "barangay_certificate",
+                        accept: ".pdf,.jpg,.jpeg,.png",
+                        multiple: false,
+                        description: "Original copy with Barangay Contact No."
+                    },
+                    {
+                        label: "4. Certificate of Disability",
+                        name: "disability_certificate[]",
+                        accept: ".pdf,.jpg,.jpeg,.png",
+                        multiple: true,
+                        description: "Two copies (1 Original & 1 Xerox)"
+                    },
+                    {
+                        label: "5. Valid ID / Birth Certificate",
+                        name: "valid_id",
+                        accept: ".pdf,.jpg,.jpeg,.png",
+                        multiple: false,
+                        description: "Xerox copy of any valid ID or birth certificate"
+                    },
+                    {
+                        label: "6. Surrender OLD PWD ID and BOOKLET",
+                        name: "old_pwd_id",
+                        accept: ".pdf,.jpg,.jpeg,.png",
+                        multiple: false,
+                        description: "Original PWD ID and booklet"
+                    }
+                ],
+                representative: [
+                    {
+                        label: "1. 2X2 Picture (2pc)",
+                        name: "picture_2x2[]",
+                        accept: "image/*",
+                        multiple: true,
+                        description: "Upload 2 pieces of 2x2 photos"
+                    },
+                    {
+                        label: "2. 1X1 Picture (1pc)",
+                        name: "picture_1x1",
+                        accept: "image/*",
+                        multiple: false,
+                        description: "Upload 1 piece of 1x1 photo"
+                    },
+                    {
+                        label: "3. Barangay Certificate Proof of Residency",
+                        name: "barangay_certificate",
+                        accept: ".pdf,.jpg,.jpeg,.png",
+                        multiple: false,
+                        description: "Original copy with Barangay Contact No. INDICATE REPRESENTATIVE'S NAME"
+                    },
+                    {
+                        label: "4. Certificate of Disability",
+                        name: "disability_certificate[]",
+                        accept: ".pdf,.jpg,.jpeg,.png",
+                        multiple: true,
+                        description: "Two copies (1 Original & 1 Xerox)"
+                    },
+                    {
+                        label: "5. Valid ID / Birth Certificate",
+                        name: "valid_id",
+                        accept: ".pdf,.jpg,.jpeg,.png",
+                        multiple: false,
+                        description: "Xerox copy of any valid ID or birth certificate"
+                    },
+                    {
+                        label: "6. Letter of Authorization",
+                        name: "letter_authorization",
+                        accept: ".pdf,.jpg,.jpeg,.png",
+                        multiple: false,
+                        description: "Letter authorizing representative"
+                    },
+                    {
+                        label: "7. ID of Representative",
+                        name: "representative_id",
+                        accept: ".pdf,.jpg,.jpeg,.png",
+                        multiple: false,
+                        description: "Valid ID of the representative"
+                    },
+                    {
+                        label: "8. Picture of Applicant with Representative",
+                        name: "applicant_representative_picture",
+                        accept: "image/*",
+                        multiple: false,
+                        description: "Picture holding dated Newspaper or Calendar together with Representative"
+                    }
+                ],
+                lost_replacement: [
+                    {
+                        label: "1. 2X2 Picture (2pc)",
+                        name: "picture_2x2[]",
+                        accept: "image/*",
+                        multiple: true,
+                        description: "Upload 2 pieces of 2x2 photos"
+                    },
+                    {
+                        label: "2. 1X1 Picture (1pc)",
+                        name: "picture_1x1",
+                        accept: "image/*",
+                        multiple: false,
+                        description: "Upload 1 piece of 1x1 photo"
+                    },
+                    {
+                        label: "3. Barangay Certificate Proof of Residency",
+                        name: "barangay_certificate",
+                        accept: ".pdf,.jpg,.jpeg,.png",
+                        multiple: false,
+                        description: "Original copy with Barangay Contact No."
+                    },
+                    {
+                        label: "4. Certificate of Disability",
+                        name: "disability_certificate[]",
+                        accept: ".pdf,.jpg,.jpeg,.png",
+                        multiple: true,
+                        description: "Two copies (1 Original & 1 Xerox)"
+                    },
+                    {
+                        label: "5. Valid ID / Birth Certificate",
+                        name: "valid_id",
+                        accept: ".pdf,.jpg,.jpeg,.png",
+                        multiple: false,
+                        description: "Xerox copy of any valid ID or birth certificate"
+                    },
+                    {
+                        label: "6. Affidavit of Loss",
+                        name: "affidavit_loss",
+                        accept: ".pdf,.jpg,.jpeg,.png",
+                        multiple: false,
+                        description: "Notarized affidavit of loss"
+                    }
+                ]
+            };
+            
+            if (documentsList && documentsData[applicationType]) {
+                documentsList.innerHTML = '';
+                documentsData[applicationType].forEach(doc => {
+                    const docItem = document.createElement('div');
+                    docItem.innerHTML = `
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">${doc.label}</label>
+                            <input type="file" name="${doc.name}" ${doc.multiple ? 'multiple' : ''} accept="${doc.accept}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                            <p class="text-xs text-gray-500 mt-1">${doc.description}</p>
+                        </div>
+                    `;
+                    documentsList.appendChild(docItem);
+                });
             }
             
             console.log('Successfully moved to document upload page!');
@@ -1169,14 +1548,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         function handleBackToForm() {
             console.log('handleBackToForm function called!');
             
-            const formPage = document.querySelector('#pwd-form').parentElement;
-            const documentUploadPage = document.getElementById('document-upload-page');
-            
-            if (formPage && documentUploadPage) {
-                documentUploadPage.style.display = 'none';
-                formPage.style.display = 'block';
-                console.log('Successfully moved back to form!');
-            }
+            document.getElementById('document-upload-page').classList.add('hidden');
+            document.getElementById('pwd-form').style.display = 'block';
+            console.log('Successfully moved back to form!');
         }
         
         // Mobile menu toggle
@@ -1198,385 +1572,121 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
 
-                                                                                                                                                                                                                                                                                               // Form functionality
-          document.addEventListener('DOMContentLoaded', function() {
-              console.log('DOM Content Loaded - JavaScript is running!');
-               // Handle disability cause dropdown
-               const disabilityCauseSelect = document.getElementById('disability_cause');
-               const congenitalOptions = document.getElementById('congenital_options');
-               const acquiredOptions = document.getElementById('acquired_options');
-               
-               console.log('Elements found:', {
-                   disabilityCauseSelect: !!disabilityCauseSelect,
-                   congenitalOptions: !!congenitalOptions,
-                   acquiredOptions: !!acquiredOptions
-               });
-               
-               if (disabilityCauseSelect) {
-                   disabilityCauseSelect.addEventListener('change', function() {
-                       console.log('Dropdown changed to:', this.value);
-                       
-                       // Hide both option sections first
-                       if (congenitalOptions) {
-                           congenitalOptions.classList.add('hidden');
-                           congenitalOptions.style.display = 'none';
-                       }
-                       if (acquiredOptions) {
-                           acquiredOptions.classList.add('hidden');
-                           acquiredOptions.style.display = 'none';
-                       }
-                       
-                       // Show appropriate options based on selection
-                       if (this.value === 'congenital') {
-                           console.log('Showing congenital options');
-                           if (congenitalOptions) {
-                               congenitalOptions.classList.remove('hidden');
-                               congenitalOptions.style.display = 'block';
-                           }
-                       } else if (this.value === 'acquired') {
-                           console.log('Showing acquired options');
-                           if (acquiredOptions) {
-                               acquiredOptions.classList.remove('hidden');
-                               acquiredOptions.style.display = 'block';
-                           }
-                       }
-                   });
-               }
-               
-               // Handle "Other: Specify" options
-               const otherCongenitalRadio = document.querySelector('input[name="disability_cause_specific"][value="other_congenital"]');
-               const otherAcquiredRadio = document.querySelector('input[name="disability_cause_specific"][value="other_acquired"]');
-               const otherCongenitalDiv = document.getElementById('other_congenital_div');
-               const otherAcquiredDiv = document.getElementById('other_acquired_div');
-               
-               if (otherCongenitalRadio && otherCongenitalDiv) {
-                   otherCongenitalRadio.addEventListener('change', function() {
-                       if (this.checked) {
-                           otherCongenitalDiv.classList.remove('hidden');
-                       } else {
-                           otherCongenitalDiv.classList.add('hidden');
-                       }
-                   });
-               }
-               
-               if (otherAcquiredRadio && otherAcquiredDiv) {
-                   otherAcquiredRadio.addEventListener('change', function() {
-                       if (this.checked) {
-                           otherAcquiredDiv.classList.remove('hidden');
-                       } else {
-                           otherAcquiredDiv.classList.add('hidden');
-                       }
-                   });
-               }
+        // Form functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM Content Loaded - JavaScript is running!');
+            
+            // Handle disability cause dropdown
+            const disabilityCauseSelect = document.getElementById('disability_cause');
+            const congenitalOptions = document.getElementById('congenital_options');
+            const acquiredOptions = document.getElementById('acquired_options');
+            
+            if (disabilityCauseSelect) {
+                disabilityCauseSelect.addEventListener('change', function() {
+                    console.log('Dropdown changed to:', this.value);
+                    
+                    // Hide both option sections first
+                    if (congenitalOptions) {
+                        congenitalOptions.classList.add('hidden');
+                        congenitalOptions.style.display = 'none';
+                    }
+                    if (acquiredOptions) {
+                        acquiredOptions.classList.add('hidden');
+                        acquiredOptions.style.display = 'none';
+                    }
+                    
+                    // Show appropriate options based on selection
+                    if (this.value === 'congenital') {
+                        console.log('Showing congenital options');
+                        if (congenitalOptions) {
+                            congenitalOptions.classList.remove('hidden');
+                            congenitalOptions.style.display = 'block';
+                        }
+                    } else if (this.value === 'acquired') {
+                        console.log('Showing acquired options');
+                        if (acquiredOptions) {
+                            acquiredOptions.classList.remove('hidden');
+                            acquiredOptions.style.display = 'block';
+                        }
+                    }
+                });
+            }
+            
+            // Handle "Other: Specify" options
+            const otherCongenitalRadio = document.querySelector('input[name="disability_cause_specific"][value="other_congenital"]');
+            const otherAcquiredRadio = document.querySelector('input[name="disability_cause_specific"][value="other_acquired"]');
+            const otherCongenitalDiv = document.getElementById('other_congenital_div');
+            const otherAcquiredDiv = document.getElementById('other_acquired_div');
+            
+            if (otherCongenitalRadio && otherCongenitalDiv) {
+                otherCongenitalRadio.addEventListener('change', function() {
+                    if (this.checked) {
+                        otherCongenitalDiv.classList.remove('hidden');
+                    } else {
+                        otherCongenitalDiv.classList.add('hidden');
+                    }
+                });
+            }
+            
+            if (otherAcquiredRadio && otherAcquiredDiv) {
+                otherAcquiredRadio.addEventListener('change', function() {
+                    if (this.checked) {
+                        otherAcquiredDiv.classList.remove('hidden');
+                    } else {
+                        otherAcquiredDiv.classList.add('hidden');
+                    }
+                });
+            }
 
-                          // Auto-calculate age from birth date
-             const birthDateInput = document.getElementById('birth_date');
-             const ageInput = document.getElementById('age');
+            // Auto-calculate age from birth date
+            const birthDateInput = document.getElementById('birth_date');
+            const ageInput = document.getElementById('age');
 
-             if (birthDateInput && ageInput) {
-                 birthDateInput.addEventListener('change', function() {
-                     const birthDate = new Date(this.value);
-                     const today = new Date();
-                     const age = today.getFullYear() - birthDate.getFullYear();
-                     const monthDiff = today.getMonth() - birthDate.getMonth();
-                     
-                     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-                         age--;
-                     }
-                     
-                     ageInput.value = age;
-                 });
-             }
+            if (birthDateInput && ageInput) {
+                birthDateInput.addEventListener('change', function() {
+                    const birthDate = new Date(this.value);
+                    const today = new Date();
+                    const age = today.getFullYear() - birthDate.getFullYear();
+                    const monthDiff = today.getMonth() - birthDate.getMonth();
+                    
+                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                        age--;
+                    }
+                    
+                    ageInput.value = age;
+                });
+            }
 
-                           // Handle "No Middle Name" checkbox
-              const noMiddleNameCheckbox = document.getElementById('no_middle_name');
-              const middleNameInput = document.getElementById('middle_name');
+            // Handle "No Middle Name" checkbox
+            const noMiddleNameCheckbox = document.getElementById('no_middle_name');
+            const middleNameInput = document.getElementById('middle_name');
 
-              if (noMiddleNameCheckbox && middleNameInput) {
-                  noMiddleNameCheckbox.addEventListener('change', function() {
-                      if (this.checked) {
-                          middleNameInput.value = '';
-                          middleNameInput.disabled = true;
-                          middleNameInput.classList.add('bg-gray-100');
-                      } else {
-                          middleNameInput.disabled = false;
-                          middleNameInput.classList.remove('bg-gray-100');
-                      }
-                  });
-              }
+            if (noMiddleNameCheckbox && middleNameInput) {
+                noMiddleNameCheckbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        middleNameInput.value = '';
+                        middleNameInput.disabled = true;
+                        middleNameInput.classList.add('bg-gray-100');
+                    } else {
+                        middleNameInput.disabled = false;
+                        middleNameInput.classList.remove('bg-gray-100');
+                    }
+                });
+            }
 
-              // Validate birth date to ensure it's not in the future
-              const birthDateInput = document.getElementById('birth_date');
-              if (birthDateInput) {
-                  birthDateInput.addEventListener('change', function() {
-                      const selectedDate = new Date(this.value);
-                      const today = new Date();
-                      today.setHours(23, 59, 59, 999); // Set to end of today
-                      
-                      if (selectedDate > today) {
-                          alert('Birth date cannot be in the future. Please select a valid date.');
-                          this.value = '';
-                          return false;
-                      }
-                  });
-              }
-              
-              // Multi-page form functionality
-              console.log('Setting up multi-page form functionality...');
-              const backBtn = document.getElementById('back-btn');
-              const formPage = document.querySelector('#pwd-form').parentElement;
-              const documentUploadPage = document.getElementById('document-upload-page');
-              const selectedApplicationType = document.getElementById('selected-application-type');
-              const requirementsList = document.getElementById('requirements-list');
-              const additionalDocsList = document.getElementById('additional-docs-list');
-              
-              console.log('Elements found:', {
-                  nextPageBtn: !!nextPageBtn,
-                  backBtn: !!backBtn,
-                  formPage: !!formPage,
-                  documentUploadPage: !!documentUploadPage,
-                  selectedApplicationType: !!selectedApplicationType,
-                  requirementsList: !!requirementsList,
-                  additionalDocsList: !!additionalDocsList
-              });
-              
-              // Requirements data based on application type
-              const requirementsData = {
-                  new: [
-                      "1. 2x2 Picture (2pc)",
-                      "2. 1x1 Picture (1pc)",
-                      "3. Barangay Certificate Proof of Residency: FOR PWD PURPOSES with Barangay Contact No. (Original Copy)",
-                      "4. Two copies of Latest Certificate of Disability (1 Original Copy & 1 Xerox Copy)",
-                      "5. Xerox of Any Valid ID / Birth Certificate"
-                  ],
-                  renewal: [
-                      "1. 2X2 Picture (2pc)",
-                      "2. 1X1 Picture (1pc)",
-                      "3. Barangay Certificate Proof of Residency: FOR PWD PURPOSES with Barangay Contact No. (Original Copy)",
-                      "4. Two copies of Latest Certificate of Disability (1 Original Copy & 1 Xerox Copy)",
-                      "5. Xerox of Any Valid ID / Birth Certificate",
-                      "6. Surrender OLD PWD ID and BOOKLET"
-                  ],
-                  representative: [
-                      "1. 2X2 Picture (2pc)",
-                      "2. 1X1 Picture (1pc)",
-                      "3. Barangay Certificate Proof of Residency: FOR PWD PURPOSES With Barangay Contact No. INDICATE REPRESENTATIVE'S NAME (Original Copy)",
-                      "4. Two copies of Latest Certificate of Disability (1 Original Copy & 1 Xerox Copy)",
-                      "5. Xerox of Any Valid ID / Birth Certificate",
-                      "6. Letter of Authorization",
-                      "7. ID of Representative",
-                      "8. Picture of Applicant holding dated Newspaper or Calendar together with Representative"
-                  ],
-                  lost_replacement: [
-                      "1. 2X2 Picture (2pc)",
-                      "2. 1X1 Picture (1pc)",
-                      "3. Barangay Certificate Proof of Residency: FOR PWD PURPOSES with Barangay Contact No. (Original Copy)",
-                      "4. Two copies of Latest Certificate of Disability (1 Original Copy & 1 Xerox Copy)",
-                      "5. Xerox of Any Valid ID / Birth Certificate",
-                      "6. Affidavit of Loss"
-                  ]
-              };
-              
-              // Additional documents data
-              const additionalDocsData = {
-                  new: [],
-                  renewal: [
-                      {
-                          name: "old_pwd_id",
-                          label: "6. Surrender OLD PWD ID and BOOKLET",
-                          description: "Original PWD ID and booklet to be surrendered"
-                      }
-                  ],
-                  representative: [
-                      {
-                          name: "letter_authorization",
-                          label: "6. Letter of Authorization",
-                          description: "Notarized letter authorizing representative"
-                      },
-                      {
-                          name: "representative_id",
-                          label: "7. ID of Representative",
-                          description: "Valid ID of the representative"
-                      },
-                      {
-                          name: "picture_with_representative",
-                          label: "8. Picture of Applicant holding dated Newspaper or Calendar together with Representative",
-                          description: "Photo showing applicant and representative with current date"
-                      }
-                  ],
-                  lost_replacement: [
-                      {
-                          name: "affidavit_loss",
-                          label: "6. Affidavit of Loss",
-                          description: "Notarized affidavit stating the loss of PWD ID"
-                      }
-                  ]
-              };
-              
-              // Next page button functionality
-              console.log('Looking for next page button...');
-              const nextPageBtn = document.getElementById('next-page-btn');
-              console.log('Next page button element:', nextPageBtn);
-              
-              if (nextPageBtn) {
-                  console.log('Next page button found, adding click listener...');
-                  nextPageBtn.addEventListener('click', function(e) {
-                      e.preventDefault(); // Prevent any default form submission
-                      console.log('Next page button clicked!');
-                      // Validate required fields
-                      console.log('Validating required fields...');
-                      
-                      // Clear previous error styling
-                      formPage.querySelectorAll('.border-red-500').forEach(field => {
-                          field.classList.remove('border-red-500');
-                      });
-                      
-                      // Get all required fields including radio buttons and selects
-                      const requiredInputs = formPage.querySelectorAll('input[required]');
-                      const requiredSelects = formPage.querySelectorAll('select[required]');
-                      const requiredFields = [...requiredInputs, ...requiredSelects];
-                      
-                      console.log('Found required fields:', requiredFields.length);
-                      let isValid = true;
-                      let firstEmptyField = null;
-                      
-                      requiredFields.forEach(field => {
-                          let fieldValue = '';
-                          
-                          if (field.type === 'radio') {
-                              // For radio buttons, check if any in the group is selected
-                              const radioGroup = formPage.querySelectorAll(`input[name="${field.name}"]`);
-                              const isSelected = Array.from(radioGroup).some(radio => radio.checked);
-                              fieldValue = isSelected ? 'selected' : '';
-                              console.log('Radio group:', field.name, 'Selected:', isSelected);
-                          } else {
-                              fieldValue = field.value.trim();
-                              console.log('Field:', field.name, 'Value:', fieldValue);
-                          }
-                          
-                          if (!fieldValue) {
-                              isValid = false;
-                              field.classList.add('border-red-500');
-                              
-                              // Store the first empty field for scrolling
-                              if (!firstEmptyField) {
-                                  firstEmptyField = field;
-                              }
-                          } else {
-                              field.classList.remove('border-red-500');
-                          }
-                      });
-                      
-                      if (!isValid) {
-                          console.log('Validation failed');
-                          console.log('First empty field:', firstEmptyField);
-                          
-                          // Scroll to the first empty field
-                          if (firstEmptyField) {
-                              // Scroll to the field with offset for header
-                              const headerHeight = 80; // Approximate header height
-                              const fieldPosition = firstEmptyField.getBoundingClientRect().top + window.pageYOffset - headerHeight;
-                              
-                              window.scrollTo({
-                                  top: fieldPosition,
-                                  behavior: 'smooth'
-                              });
-                              
-                              // Add focus to the field
-                              setTimeout(() => {
-                                  firstEmptyField.focus();
-                                  // Add a visual highlight effect
-                                  firstEmptyField.classList.add('ring-2', 'ring-red-500', 'ring-opacity-50');
-                                  
-                                  // Remove highlight after 3 seconds
-                                  setTimeout(() => {
-                                      firstEmptyField.classList.remove('ring-2', 'ring-red-500', 'ring-opacity-50');
-                                  }, 3000);
-                              }, 500);
-                          }
-                          
-                          alert('Please fill in all required fields marked with *. The form has been scrolled to the first missing field.');
-                          return;
-                      }
-                      console.log('Validation passed');
-                      
-                      // Get selected application type
-                      console.log('Checking application type...');
-                      const applicationTypeRadio = document.querySelector('input[name="application_type"]:checked');
-                      console.log('Application type radio found:', !!applicationTypeRadio);
-                      if (!applicationTypeRadio) {
-                          console.log('No application type selected');
-                          alert('Please select an application type');
-                          return;
-                      }
-                      
-                      const applicationType = applicationTypeRadio.value;
-                      const applicationTypeText = applicationTypeRadio.nextElementSibling.textContent;
-                      console.log('Application type:', applicationType, 'Text:', applicationTypeText);
-                      
-                      // Update display
-                      selectedApplicationType.textContent = applicationTypeText;
-                      
-                      // Populate requirements list
-                      requirementsList.innerHTML = '';
-                      requirementsData[applicationType].forEach(req => {
-                          const reqItem = document.createElement('div');
-                          reqItem.className = 'flex items-start space-x-2';
-                          reqItem.innerHTML = `
-                              <span class="text-green-600 font-bold">✓</span>
-                              <span class="text-sm text-gray-700">${req}</span>
-                          `;
-                          requirementsList.appendChild(reqItem);
-                      });
-                      
-                      // Populate additional documents
-                      additionalDocsList.innerHTML = '';
-                      additionalDocsData[applicationType].forEach(doc => {
-                          const docItem = document.createElement('div');
-                          docItem.innerHTML = `
-                              <label class="block text-sm font-medium text-gray-700 mb-2">${doc.label}</label>
-                              <input type="file" name="${doc.name}" accept=".pdf,.jpg,.jpeg,.png" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-                              <p class="text-xs text-gray-500 mt-1">${doc.description}</p>
-                          `;
-                          additionalDocsList.appendChild(docItem);
-                      });
-                      
-                      // Store form data
-                      const formData = new FormData(document.getElementById('pwd-form'));
-                      const formDataString = JSON.stringify(Object.fromEntries(formData));
-                      document.getElementById('form-data-input').value = formDataString;
-                      
-                      // Show document upload page
-                      console.log('Transitioning to document upload page...');
-                      console.log('Form page element:', formPage);
-                      console.log('Document upload page element:', documentUploadPage);
-                      formPage.classList.add('hidden');
-                      documentUploadPage.classList.remove('hidden');
-                      console.log('Page transition completed');
-                  });
-              } else {
-                  console.error('Next page button not found!');
-                  // Try to find the button by different selectors
-                  const buttonByClass = document.querySelector('.bg-primary');
-                  const buttonByText = Array.from(document.querySelectorAll('button')).find(btn => btn.textContent.includes('Next Page'));
-                  console.log('Alternative button search:', {
-                      byClass: !!buttonByClass,
-                      byText: !!buttonByText,
-                      buttonText: buttonByText ? buttonByText.textContent : 'not found'
-                  });
-              }
-              
-              // Back button functionality
-              if (backBtn) {
-                  console.log('Back button found, adding click listener...');
-                  backBtn.addEventListener('click', function() {
-                      console.log('Back button clicked!');
-                      documentUploadPage.classList.add('hidden');
-                      formPage.classList.remove('hidden');
-                      console.log('Back to form page');
-                  });
-              } else {
-                  console.error('Back button not found!');
+            // Validate birth date to ensure it's not in the future
+            if (birthDateInput) {
+                birthDateInput.addEventListener('change', function() {
+                    const selectedDate = new Date(this.value);
+                    const today = new Date();
+                    today.setHours(23, 59, 59, 999); // Set to end of today
+                    
+                    if (selectedDate > today) {
+                        alert('Birth date cannot be in the future. Please select a valid date.');
+                        this.value = '';
+                        return false;
+                    }
+                });
             }
         });
     </script>
